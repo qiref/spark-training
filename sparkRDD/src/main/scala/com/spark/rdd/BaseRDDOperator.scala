@@ -61,7 +61,7 @@ object BaseRDDOperator {
     val sparkSession = getDefaultSparkSession
     val dataArray = Array(1, 2, 3, 4, 5, 6)
     // 创建一个RDD
-    val rdd = sparkSession.sparkContext.parallelize(dataArray)
+    val rdd = sparkSession.sparkContext.parallelize(dataArray,2)
     // 此处的遍历结果为无序的
     rdd.foreach(row => println(row))
   }
