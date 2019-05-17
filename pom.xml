@@ -11,6 +11,7 @@
     <modules>
         <module>wordCount</module>
         <module>sparkMysql</module>
+        <module>sparkRDD</module>
     </modules>
 
     <properties>
