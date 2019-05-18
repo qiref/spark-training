@@ -63,3 +63,41 @@ Transformation算子不会马上执行，只有当遇到Action算子时才会执
 
 代码中至少有一个Action算子时才会正常执行。
 
+#### 小细节
+
+##### 引用成员变量
+
+以下代码中map中引用了class中的成员变量；
+```scala
+class MyClass {
+  val field = "Hello"
+  def doStuff(rdd: RDD[String]): RDD[String] = { rdd.map(x => field + x) }
+}
+```
+
+但这种方式等价于：``` rdd.map(x => this.field + x) ```，这种情况会引用整个this；
+正确的做法是这样的：
+
+```scala
+def doStuff(rdd: RDD[String]): RDD[String] = {
+  // 复制一份副本到本地
+  val field_ = this.field
+  rdd.map(x => field_ + x)
+}
+```
+
+在map中引用成员变量，应该在进行转换之前就复制一份副本到本地，然后使用本地的副本而不是去引用成员变量；
+
+##### 求和操作
+
+不能在代码中直接使用foreach求和
+
+```scala
+var counter = 0
+var rdd = sc.parallelize(data)
+
+// Wrong: Don't do this!!
+rdd.foreach(x => counter += x)
+
+println("Counter value: " + counter)
+```
