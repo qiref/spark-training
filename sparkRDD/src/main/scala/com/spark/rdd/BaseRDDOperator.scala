@@ -51,7 +51,13 @@ object BaseRDDOperator {
     // createRdd()
 
     // 读取一个文件，并统计字符个数
-    charCount()
+    // charCount()
+
+    // flatMap示例
+    //flatMapDemo()
+
+    // mapPartitionsWithIndex示例
+    mapPartitionsWithIndexDemo()
   }
 
   /**
@@ -76,5 +82,28 @@ object BaseRDDOperator {
     val textLines = textData.map(line => line.length)
     val totalLine = textLines.reduce((a, b) => a + b)
     println(totalLine)
+  }
+
+  /**
+    * flatMap实例，flatMap返回的是一组元素，官网说是一个Seq ，而不是一个元素
+    */
+  def flatMapDemo(): Unit = {
+    val sparkSession = getDefaultSparkSession
+    val textData = sparkSession.sparkContext.textFile("sparkRDD/src/main/resources/data.txt")
+    //    val flatData = textData.flatMap(row => row.split(" "))
+    val flatData = textData.map(row => row.split(" "))
+    flatData.collect().foreach(println(_))
+  }
+
+  /**
+    * mapPartitionsWithIndex使用示例
+    */
+  def mapPartitionsWithIndexDemo(): Unit = {
+    val sparkSession = getDefaultSparkSession
+    val rddData = sparkSession.sparkContext.parallelize(Array("a", "b", "c"))
+    val data = rddData.mapPartitionsWithIndex((index: Int, row: Iterator[String]) => {
+      row.toList.map(x => "[partID:" + index + ":" + x + "]").iterator
+    })
+    data.collect().foreach(println(_))
   }
 }

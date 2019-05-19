@@ -47,7 +47,7 @@ val rdd = sparkSession.sparkContext.parallelize(dataArray)
 
 RDD中包含两种类型的算子：Transformation和Action；
 
-#### Transformation
+#### Transformation 算子
 
 Transformation 转换操作，将一个RDD转化为另外一个RDD，但是该过程具有延迟加载性；
 Transformation算子不会马上执行，只有当遇到Action算子时才会执行。
@@ -59,7 +59,18 @@ Transformation算子不会马上执行，只有当遇到Action算子时才会执
 * flatMap(function) 类似于map，但是每一个元素可以被转化为多个元素，function应该返回一个序列。
 * mapPartitions(function) 类似于map，但独立地在RDD的每一个分片上运行，函数类型是：Iterator[T] => Iterator[U]
 
-#### Action
+传值调用（call-by-value）：先计算参数表达式的值，再应用到函数内部，在函数外部求值；
+传名调用（call-by-name）：将未计算的参数表达式直接应用到函数内部，在函数内部求值；
+
+Iterator[T] => Iterator[U] 就是表示该函数为传名调用。
+
+* mapPartitionsWithIndex(function) 类似于mapPartitions，但是传入的参数中多了一个索引值，该索引值为RDD分片数的索引值；
+传入的函数类型为：(Int, Iterator<T>) => Iterator<U>
+
+
+
+
+#### Action 算子
 
 代码中至少有一个Action算子时才会正常执行。
 
