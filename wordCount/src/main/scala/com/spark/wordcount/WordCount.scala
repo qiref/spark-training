@@ -15,9 +15,7 @@ object WordCount {
     val spark = SparkSession.builder().appName("word count").master("local[3]").getOrCreate()
     val fileData1 = spark.sparkContext.textFile(textFilePath)
     val words = fileData1.flatMap(row => row.split(" "))
-    val count = words.map(word => (word, 1)).reduceByKey {
-      case (x, y) => x + y
-    }
+    val count = words.map(word => (word, 1)).reduceByKey((x, y) => x + y)
     //    count.foreach(println(_))
     // 转化为数组
     count.collect().foreach(println(_))
