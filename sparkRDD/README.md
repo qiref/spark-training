@@ -54,20 +54,56 @@ Transformation算子不会马上执行，只有当遇到Action算子时才会执
 
 常见的Transformation算子：
 
-* map(function) 由一个RDD转化为另外一个RDD，function的每一次输出组成另外一个RDD。
-* filter(function) 由一个RDD的元素经过筛选，满足function条件的元素组成一个新的RDD。
-* flatMap(function) 类似于map，但是每一个元素可以被转化为多个元素，function应该返回一个序列。
-* mapPartitions(function) 类似于map，但独立地在RDD的每一个分片上运行，函数类型是：Iterator[T] => Iterator[U]
+* **map(function)** 由一个RDD转化为另外一个RDD，function的每一次输出组成另外一个RDD；
 
-传值调用（call-by-value）：先计算参数表达式的值，再应用到函数内部，在函数外部求值；
-传名调用（call-by-name）：将未计算的参数表达式直接应用到函数内部，在函数内部求值；
+* **filter(function) **由一个RDD的元素经过筛选，满足function条件的元素组成一个新的RDD；
 
-Iterator[T] => Iterator[U] 就是表示该函数为传名调用。
+* **flatMap(function) **类似于map，但是每一个元素可以被转化为多个元素，function应该返回一个序列；
 
-* mapPartitionsWithIndex(function) 类似于mapPartitions，但是传入的参数中多了一个索引值，该索引值为RDD分片数的索引值；
-传入的函数类型为：(Int, Iterator<T>) => Iterator<U>
+* **mapPartitions(function)** 类似于map，但独立地在RDD的每一个分片上运行，函数类型是：Iterator[T] => Iterator[U]；
 
+  传值调用（call-by-value）：先计算参数表达式的值，再应用到函数内部，在函数外部求值；
+  传名调用（call-by-name）：将未计算的参数表达式直接应用到函数内部，在函数内部求值；
 
+  Iterator[T] => Iterator[U] 就是表示该函数为传名调用。
+
+* **mapPartitionsWithIndex(function) **类似于mapPartitions，但是传入的参数中多了一个索引值，该索引值为RDD分片数的索引值；
+  （传入的函数类型为：(Int, Iterator<T>) => Iterator<U>）
+
+* **sample(withReplacement, fraction, seed) **根据fraction指定的比例对数据进行采样，可以选择是否使用随机数进行替换，seed用于指定随机数生成器种子；
+
+* **union(otherDataset)** 对源RDD和参数中的RDD求并集后返回一个新的RDD；
+
+* **intersection**(otherDataset) 对源RDD和参数中的RDD求交集后返回一个新的RDD；
+
+* **distinct**([numTasks])) 对源RDD进行去重后返回一个新的RDD；
+
+* **groupByKey**([numTasks])  在一个(K,V)的RDD上调用，返回一个(K, Iterator[V])的RDD；
+
+* **reduceByKey**(func, [numTasks]) 在一个(K,V)的RDD上调用，返回一个(K,V)的RDD，使用指定的reduce函数，将相同key的值聚合到一起，与groupByKey类似，reduce任务的个数可以通过第二个可选的参数来设置； 与groupByKey的不同在于reduceByKey中可以传入一个函数，处理规约后的每个值；groupByKey则是将分组后的值都放到Iterator中；
+
+  ```scala
+  val textFileRDD = sparkSession.sparkContext.textFile("sparkRDD/src/main/resources/data.txt")
+      val rddData = textFileRDD.flatMap(_.split(" ")).map(row => (row, 1))
+      rddData.groupByKey().map(row => {
+        val count = row._2.sum
+        (row._1, count)
+      }).collect().foreach(println(_))
+  
+      rddData.reduceByKey((x, y) => x + y).collect().foreach(println(_))**aggregateByKey**(zeroValue)(seqOp, combOp, [numTasks])
+  ```
+
+  看完reduceByKey之后再去看看distinct()的源码，就会发现很有意思：
+
+  ```scala
+    def distinct(numPartitions: Int)(implicit ord: Ordering[T] = null): RDD[T] = withScope {
+      map(x => (x, null)).reduceByKey((x, y) => x, numPartitions).map(_._1)
+    }
+  ```
+
+  先是将一个RDD转化为(x,null) 这种二元结构，然后按照每个key进行规约，这样就能保证key只有一个，而x,y都为null，最后只需要再将规约后的key取出来，就是去重后的RDD了。
+
+* **aggregateByKey**(zeroValue)(seqOp, combOp, [numTasks])  先按分区聚合 ，再总的聚合 ；每次要跟初始值交流 例如：aggregateByKey(0)(_+_,_+_) 对k/y的RDD进行操作；
 
 
 #### Action 算子

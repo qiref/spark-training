@@ -54,10 +54,16 @@ object BaseRDDOperator {
     // charCount()
 
     // flatMap示例
-    //flatMapDemo()
+    // flatMapDemo()
 
     // mapPartitionsWithIndex示例
-    mapPartitionsWithIndexDemo()
+    // mapPartitionsWithIndexDemo()
+
+    // 求并集示例
+    // unionRDD()
+
+    // 分组示例
+    groupByKeyDemo()
   }
 
   /**
@@ -100,10 +106,48 @@ object BaseRDDOperator {
     */
   def mapPartitionsWithIndexDemo(): Unit = {
     val sparkSession = getDefaultSparkSession
-    val rddData = sparkSession.sparkContext.parallelize(Array("a", "b", "c"))
+    val rddData = sparkSession.sparkContext.parallelize(Array("a", "b", "c", "d", "e"))
     val data = rddData.mapPartitionsWithIndex((index: Int, row: Iterator[String]) => {
       row.toList.map(x => "[partID:" + index + ":" + x + "]").iterator
     })
     data.collect().foreach(println(_))
+  }
+
+  /**
+    * 求并集示例
+    */
+  def unionRDD(): Unit = {
+    val sparkSession = getDefaultSparkSession
+    val rddData1 = sparkSession.sparkContext.parallelize(List("s", "d", "f", "a"))
+    val rddData2 = rddData1.map(row => {
+      if (row.equals("s")) {
+        row + "s"
+      } else {
+        row
+      }
+    })
+    println("求并集:")
+    rddData1.union(rddData2).foreach(println(_))
+    println("求交集:")
+    rddData1.intersection(rddData2).foreach(println(_))
+
+    val rddData3 = rddData1.union(rddData2)
+    println("去重:")
+    rddData3.distinct().collect().foreach(println(_))
+  }
+
+  /**
+    * 分组示例
+    */
+  def groupByKeyDemo(): Unit = {
+    val sparkSession = getDefaultSparkSession
+    val textFileRDD = sparkSession.sparkContext.textFile("sparkRDD/src/main/resources/data.txt")
+    val rddData = textFileRDD.flatMap(_.split(" ")).map(row => (row, 1))
+    rddData.groupByKey().map(row => {
+      val count = row._2.sum
+      (row._1, count)
+    }).collect().foreach(println(_))
+    rddData.reduceByKey((x, y) => x + y).collect().foreach(println(_))
+    //    rddData.groupByKey().collect().foreach(println(_))
   }
 }
