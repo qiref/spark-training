@@ -62,8 +62,15 @@ Transformation算子不会马上执行，只有当遇到Action算子时才会执
 
 * **mapPartitions(function)** 类似于map，但独立地在RDD的每一个分片上运行，函数类型是：Iterator[T] => Iterator[U]；
 
+
+
   传值调用（call-by-value）：先计算参数表达式的值，再应用到函数内部，在函数外部求值；
+
+
+
   传名调用（call-by-name）：将未计算的参数表达式直接应用到函数内部，在函数内部求值；
+
+
 
   Iterator[T] => Iterator[U] 就是表示该函数为传名调用。
 
