@@ -90,7 +90,7 @@ Transformation算子不会马上执行，只有当遇到Action算子时才会执
         (row._1, count)
       }).collect().foreach(println(_))
   
-      rddData.reduceByKey((x, y) => x + y).collect().foreach(println(_))**aggregateByKey**(zeroValue)(seqOp, combOp, [numTasks])
+      rddData.reduceByKey((x, y) => x + y).collect().foreach(println(_))
   ```
 
   看完reduceByKey之后再去看看distinct()的源码，就会发现很有意思：
@@ -109,6 +109,10 @@ Transformation算子不会马上执行，只有当遇到Action算子时才会执
 #### Action 算子
 
 代码中至少有一个Action算子时才会正常执行。
+
+
+
+
 
 #### 小细节
 
