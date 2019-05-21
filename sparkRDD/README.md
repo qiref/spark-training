@@ -70,7 +70,7 @@ Transformation算子不会马上执行，只有当遇到Action算子时才会执
 * **mapPartitionsWithIndex(function)** 类似于mapPartitions，但是传入的参数中多了一个索引值，该索引值为RDD分片数的索引值；
   （传入的函数类型为：(Int, Iterator<T>) => Iterator<U>）
 
-* **sample(withReplacement, fraction, seed)**根据fraction指定的比例对数据进行采样，可以选择是否使用随机数进行替换，seed用于指定随机数生成器种子；
+* **sample(withReplacement, fraction, seed)** 根据fraction指定的比例对数据进行采样，可以选择是否使用随机数进行替换，seed用于指定随机数生成器种子；
 
 * **union(otherDataset)**  对源RDD和参数中的RDD求并集后返回一个新的RDD；
 
