@@ -112,6 +112,25 @@ Transformation算子不会马上执行，只有当遇到Action算子时才会执
 
 * **aggregateByKey (zeroValue)(seqOp, combOp, [numTasks])**  先按分区聚合 ，再总的聚合 ；每次要跟初始值交流 例如：aggregateByKey(0)(_+_,_+_) 对k/y的RDD进行操作；
 
+* **sortByKey([*ascending*], [*numPartitions*])**  在一个(K,V)的RDD上调用，K必须实现Ordered接口，返回一个按照key进行排序的(K,V)的RDD；
+
+* **sortBy(func,[ascending], [numTasks])** 与sortByKey类似，排序的对象也是（K,V）结构，第一个参数是根据什么排序， 第二个是怎么排序 false倒序 ，第三个排序后分区数 ，默认与原RDD一样；
+
+  ```scala
+  def sortByDemo(): Unit = {
+      val sparkSession = getDefaultSparkSession
+      val rddData = sparkSession.sparkContext.parallelize(List(3, 23, 4, 6, 234, 87))
+      val newRdd = rddData.mapPartitionsWithIndex((index: Int, row: Iterator[Int]) => {
+        row.toList.map(r => (index, r)).iterator
+      })
+      newRdd.sortBy(_._2, ascending = false).collect().foreach(println(_))
+    }
+  ```
+  
+* **join(otherDataset, [numTasks])**  在类型为(K,V)和(K,W)的RDD上调用，返回一个相同key对应的所有元素对在一起的(K,(V,W))的RDD ,相当于内连接（求交集)；
+  
+* **cogroup(otherDataset, [numTasks])**  在类型为(K,V)和(K,W)的RDD上调用，返回一个(K,(Iterable<V>,Iterable<W>))类型的RDD；
+
 
 #### Action 算子
 

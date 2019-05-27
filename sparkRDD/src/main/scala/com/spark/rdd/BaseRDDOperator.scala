@@ -63,7 +63,19 @@ object BaseRDDOperator {
     // unionRDD()
 
     // 分组示例
-    groupByKeyDemo()
+    // groupByKeyDemo()
+
+    // 聚合示例
+    // aggregateByKeyDemo()
+
+    // 排序实例
+    // sortByDemo()
+
+    // 特殊排序
+    // sortByKeyDemo()
+
+    // join操作
+    joinDemo()
   }
 
   /**
@@ -149,5 +161,53 @@ object BaseRDDOperator {
     }).collect().foreach(println(_))
     rddData.reduceByKey((x, y) => x + y).collect().foreach(println(_))
     //    rddData.groupByKey().collect().foreach(println(_))
+  }
+
+  /**
+    * 聚合，暂时还没理解
+    */
+  def aggregateByKeyDemo(): Unit = {
+    val sparkSession = getDefaultSparkSession
+    val textFileRDD = sparkSession.sparkContext.textFile("sparkRDD/src/main/resources/data.txt")
+    val rddData = textFileRDD.flatMap(_.split(" ")).map(row => (row, 1))
+    val aggregateRDD = rddData.aggregateByKey(0)(_ + _, _ + _)
+    aggregateRDD.collect().foreach(println(_))
+  }
+
+  /**
+    * 排序实例，排序的RDD必须是（K,V）结构
+    */
+  def sortByDemo(): Unit = {
+    val sparkSession = getDefaultSparkSession
+    val rddData = sparkSession.sparkContext.parallelize(List(3, 23, 4, 6, 234, 87))
+    val newRdd = rddData.mapPartitionsWithIndex((index: Int, row: Iterator[Int]) => {
+      row.toList.map(r => (index, r)).iterator
+    })
+    newRdd.sortBy(_._2, ascending = false).collect().foreach(println(_))
+  }
+
+  /**
+    * 特殊的排序
+    */
+  def sortByKeyDemo(): Unit = {
+    val sparkSession = getDefaultSparkSession
+    val rddData2 = sparkSession.sparkContext.parallelize(List("CSDN", "ITEYE", "CNBLOG", "OSCHINA", "GITHUB"))
+    val rddData3 = sparkSession.sparkContext.parallelize(1 to rddData2.count().toInt)
+    val rddData4 = rddData2.zip(rddData3)
+    rddData4.sortByKey().collect().foreach(println(_))
+  }
+
+  /**
+    * join 操作
+    */
+  def joinDemo(): Unit = {
+    val sparkSession = getDefaultSparkSession
+    val rddDataName = sparkSession.sparkContext.parallelize(List("Tom", "Rose", "Jack", "Jerry"))
+    val rddDataId = sparkSession.sparkContext.parallelize(List("1001", "1002", "1003", "1004"))
+    val rddDataAge = sparkSession.sparkContext.parallelize(List(12, 22, 13, 20))
+    val rddIdAndName = rddDataId.zip(rddDataName)
+    val rddIdAndAge = rddDataId.zip(rddDataAge)
+    val fullRdd = rddIdAndName.join(rddIdAndAge)
+    fullRdd.collect().foreach(println(_))
   }
 }
