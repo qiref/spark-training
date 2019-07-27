@@ -75,8 +75,7 @@ object BaseRDDOperator {
     // sortByKeyDemo()
 
     // join操作
-    // joinDemo()
-    coGroupDemo()
+     joinDemo()
   }
 
   /**
