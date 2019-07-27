@@ -75,7 +75,8 @@ object BaseRDDOperator {
     // sortByKeyDemo()
 
     // join操作
-    joinDemo()
+    // joinDemo()
+    coGroupDemo()
   }
 
   /**
@@ -198,7 +199,7 @@ object BaseRDDOperator {
   }
 
   /**
-    * join 操作
+    * zip 和 join 操作
     */
   def joinDemo(): Unit = {
     val sparkSession = getDefaultSparkSession
@@ -206,8 +207,11 @@ object BaseRDDOperator {
     val rddDataId = sparkSession.sparkContext.parallelize(List("1001", "1002", "1003", "1004"))
     val rddDataAge = sparkSession.sparkContext.parallelize(List(12, 22, 13, 20))
     val rddIdAndName = rddDataId.zip(rddDataName)
+    rddIdAndName.collect().foreach(println(_))
     val rddIdAndAge = rddDataId.zip(rddDataAge)
+    rddIdAndAge.collect().foreach(println(_))
     val fullRdd = rddIdAndName.join(rddIdAndAge)
     fullRdd.collect().foreach(println(_))
   }
+
 }
