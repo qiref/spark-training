@@ -245,7 +245,47 @@ Transformation算子不会马上执行，只有当遇到Action算子时才会执
 
 #### Action 算子
 
-代码中至少有一个Action算子时才会正常执行。
+代码中至少有一个Action算子时才会正常执行,Transformation具有lazy特性(延迟加载)。
+
+* **reduce(func)** 通过func函数聚集RDD中的所有元素，这个功能必须是可交换且可并联的。
+
+```scala
+/**
+    * 如果map叫转换，那reduce就叫规约
+    */
+  def reduceDemo(): Unit = {
+    val sparkSession = getDefaultSparkSession
+    val numRdd = sparkSession.sparkContext.parallelize(List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
+    val i = numRdd.reduce((a, b) => {
+      println("a:" + a)
+      println("b:" + b)
+      a + b
+    })
+    println(i)
+  }
+执行结果：
+a:1
+b:2
+a:3
+b:3
+a:6
+b:4
+a:10
+b:5
+a:15
+b:6
+a:21
+b:7
+a:28
+b:8
+a:36
+b:9
+a:45
+b:10
+55
+```
+reduce中接收的是一个函数，
+从执行结果上看，除了第一次a,b分别拿到List中的第一个和第二个元素，后面的每次都是将运算表达式的结果赋值给了a，然后b又重新从List中取一个元素。
 
 #### 小细节
 
@@ -286,3 +326,28 @@ rdd.foreach(x => counter += x)
 
 println("Counter value: " + counter)
 ```
+
+#### Shuffle operations
+
+Shuffle 是spark中很重要的一个概念，shuffle是spark中将数据重新分区的机制，它将数据重新分组到不同的分区中。通常这种操作涉及到数据跨executor或者跨机器间的数据复制，
+这使得shuffle非常消耗资源并且复杂。
+例如 ```reduceByKey``` 这个操作，需要把所有分区上的数据都找到，才能知道有哪些key是一致的，并将key对应的value放到同一个元组中去，并且创建一个新的RDD。
+触发的 shuffle 操作包括 repartition 操作，
+如 ```repartition``` 和 ```coalesce```, ByKey 操作 (除了 counting 之外) 像 ```groupByKey``` 和 ```reduceByKey```, 和 ```join``` 操作, 
+像 ```cogroup``` 和 ```join```.
+
+
+尽管每个分区新 shuffle 的数据集将是确定的，分区本身的顺序也是这样，但是这些数据的顺序是不确定的。如果希望 shuffle 后的数据是有序的，可以使用:
+
+* mapPartitions to sort each partition using, for example, .sorted
+
+* repartitionAndSortWithinPartitions to efficiently sort partitions while simultaneously repartitioning
+
+* sortBy to make a globally ordered RDD
+
+* mapPartitions 对每个 partition 分区进行排序，例如, .sorted
+
+* repartitionAndSortWithinPartitions 在分区的同时对分区进行高效的排序.
+
+* sortBy 对 RDD 进行全局的排序
+
