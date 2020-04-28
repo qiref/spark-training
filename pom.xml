@@ -12,10 +12,11 @@
         <module>wordCount</module>
         <module>sparkMysql</module>
         <module>sparkRDD</module>
+        <module>sparkSql</module>
     </modules>
 
     <properties>
-        <spark.version>2.3.1</spark.version>
+        <spark.version>2.3.3</spark.version>
     </properties>
     <dependencies>
 

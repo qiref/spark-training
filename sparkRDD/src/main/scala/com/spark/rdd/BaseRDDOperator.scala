@@ -11,7 +11,7 @@ import org.apache.spark.sql.SparkSession
 object BaseRDDOperator {
 
   val APP_NAME_DEFAULT = "BASE_RDD_OPERATOR"
-  val MASTER_DEFAULT = "local[2]"
+  val MASTER_DEFAULT = "local[1]"
 
   /**
     * 获取sparkSession对象
@@ -46,37 +46,38 @@ object BaseRDDOperator {
     getSparkSession(null, null, new SparkConf())
   }
 
-  def main(args: Array[String]): Unit = {
-    // 创建RDD
-    // createRdd()
+  // transform 算子
+  //  def main(args: Array[String]): Unit = {
+  // 创建RDD
+  // createRdd()
 
-    // 读取一个文件，并统计字符个数
-    // charCount()
+  // 读取一个文件，并统计字符个数
+  // charCount()
 
-    // flatMap示例
-    // flatMapDemo()
+  // flatMap示例
+  // flatMapDemo()
 
-    // mapPartitionsWithIndex示例
-    // mapPartitionsWithIndexDemo()
+  // mapPartitionsWithIndex示例
+  // mapPartitionsWithIndexDemo()
 
-    // 求并集示例
-    // unionRDD()
+  // 求并集示例
+  // unionRDD()
 
-    // 分组示例
-    // groupByKeyDemo()
+  // 分组示例
+  // groupByKeyDemo()
 
-    // 聚合示例
-    // aggregateByKeyDemo()
+  // 聚合示例
+  // aggregateByKeyDemo()
 
-    // 排序实例
-    // sortByDemo()
+  // 排序实例
+  // sortByDemo()
 
-    // 特殊排序
-    // sortByKeyDemo()
+  // 特殊排序
+  // sortByKeyDemo()
 
-    // join操作
-     joinDemo()
-  }
+  // join操作
+  // joinDemo()
+  //  }
 
   /**
     * 创建一个RDD
@@ -213,4 +214,31 @@ object BaseRDDOperator {
     fullRdd.collect().foreach(println(_))
   }
 
+  // Action 算子
+  def main(args: Array[String]): Unit = {
+    // reduce 示例
+    reduceDemo()
+  }
+
+  /**
+    * 如果map叫转换，那reduce就叫规约
+    */
+  def reduceDemo(): Unit = {
+    val sparkSession = getDefaultSparkSession
+    val numRdd = sparkSession.sparkContext.parallelize(List(1, 2, 3, 4, 5, 6, 7, 8, 9, 10))
+    val i = numRdd.reduce((a, b) => {
+      println("a:" + a)
+      println("b:" + b)
+      a + b
+    })
+    println(i)
+  }
+
+  /**
+    * reduce 示例
+    */
+  def reduceDemo1(): Unit = {
+    val sparkSession = getDefaultSparkSession
+    val tuple = sparkSession.sparkContext.parallelize(List((1, 2), (4, 5), (7, 9)))
+  }
 }
