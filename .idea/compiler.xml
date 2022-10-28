@@ -6,11 +6,18 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="sparkRDD" />
-        <module name="sparkSql" />
-        <module name="wordCount" />
-        <module name="sparkMysql" />
+        <module name="spark-rdd" />
+        <module name="word-count" />
+        <module name="spark-mysql" />
+        <module name="spark-sql" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="spark-mysql" target="1.5" />
+      <module name="spark-rdd" target="1.5" />
+      <module name="spark-sql" target="1.5" />
+      <module name="spark-training" target="1.5" />
+      <module name="word-count" target="1.5" />
+    </bytecodeTargetLevel>
   </component>
 </project>
