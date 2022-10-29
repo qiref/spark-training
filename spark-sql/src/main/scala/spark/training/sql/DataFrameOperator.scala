@@ -1,9 +1,9 @@
 package spark.training.sql
 
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.SparkSession
-import java.util.Properties
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
+import java.util.Properties
 
 
 /**
@@ -48,33 +48,55 @@ object DataFrameOperator {
     getSparkSession(APP_NAME_DEFAULT, MASTER_DEFAULT, new SparkConf())
   }
 
-  def main(args: Array[String]): Unit = {
-    // 指定mysql连接地址
-    val url = "jdbc:mysql://localhost:3306/mydb?characterEncoding=UTF-8"
-    // 指定要加载的表名
-    val student = "students"
-    val score = "scores"
-    // 配置连接数据库的相关属性
-    val properties = new Properties()
-    // 用户名
-    properties.setProperty("user", "root")
-    // 密码
-    properties.setProperty("password", "123456")
+  def getJdbcUrl(ip: String, port: String, database: String): String = {
+    val jdbcUrl = s"jdbc:mysql://$ip:$port/$database?useUnicode=true&characterEncoding=utf-8&useSSL=false"
+    jdbcUrl
+  }
 
-    val studentFrame: DataFrame = spark.read.jdbc(url, student, properties)
-    val scoreFrame: DataFrame = spark.read.jdbc(url, score, properties)
+  def dbConnectionProperties(user: String, password: String): Properties = {
+    val connectionProperties = new Properties()
+    connectionProperties.put("driver", "com.mysql.cj.jdbc.Driver")
+    connectionProperties.put("user", user)
+    connectionProperties.put("password", password)
+    connectionProperties.put("fetchsize", "1000")
+    connectionProperties.put("batchsize", "10000")
+    connectionProperties
+  }
+
+  def main(args: Array[String]): Unit = {
+    val student = "student"
+    val score = "score"
+    val session = getDefaultSparkSession()
+    val studentFrame: DataFrame = session.read.jdbc(getJdbcUrl("9.135.222.17", "3306", "archie"),
+      student,
+      dbConnectionProperties("root", "QcloudV5!"))
+    val scoreFrame: DataFrame = session.read.jdbc(getJdbcUrl("9.135.222.17", "3306", "archie"),
+      score,
+      dbConnectionProperties("root", "QcloudV5!"))
     // 把dataFrame注册成表
     studentFrame.createTempView("student")
     scoreFrame.createOrReplaceTempView("score")
     // spark.sql("SELECT temp1.class,SUM(temp1.degree),AVG(temp1.degree) FROM (SELECT  students.sno AS ssno,
     // students.sname,students.ssex,students.sbirthday,students.class, scores.sno,scores.degree,scores.cno
     // FROM students LEFT JOIN scores ON students.sno =  scores.sno ) temp1  GROUP BY temp1.class; ").show()
-    val resultFrame: DataFrame = spark.sql("SELECT temp1.class,SUM(temp1.degree),AVG(temp1.degree)  " +
-      "FROM (SELECT  students.sno AS ssno,students.sname,students.ssex,students.sbirthday,students.class, " +
-      "scores.sno,scores.degree,scores.cno  FROM students LEFT JOIN scores ON students.sno =  scores.sno  " +
-      "WHERE degree > 60 AND sbirthday > '1973-01-01 00:00:00' ) temp1 GROUP BY temp1.class")
+    val resultFrame: DataFrame = session.sql(
+      "SELECT stu_score.class," +
+        "      sum(stu_score.degree)," +
+        "      avg(stu_score.degree)" +
+        "FROM" +
+        "  (SELECT student.sno AS ssno," +
+        "         student.sname," +
+        "          student.ssex," +
+        "          student.sbirthday," +
+        "          student.class," +
+        "          score.sno," +
+        "          score.degree," +
+        "          score.cno" +
+        "   FROM student" +
+        "   LEFT JOIN score ON student.sno = score.sno) stu_score " +
+        "GROUP BY stu_score.class")
     resultFrame.explain(true)
     resultFrame.show()
-    spark.stop()
+    session.stop()
   }
 }
